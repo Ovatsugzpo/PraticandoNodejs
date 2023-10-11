@@ -1,0 +1,304 @@
+// ler pasta
+const fs = require('fs')
+const data = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="Cronometro.css">
+    <title>Cronometro</title>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <h1>Cronometro</h1>
+            <div class="time">
+                <p class="tempo">00:00:00</p>
+            </div>
+        </div>
+        <form class="form">
+            <input type="text" class="input" placeholder="00:00:00" maxLength="6">
+            <button id="start"class="botao">Iniciar</button>
+            <button id="pause" class="botao escondido">Parar</button>
+            <button id="reset" class="botao">Reset</button>
+        </form>
+    </main>
+</body>
+<script>
+    const form = document.querySelector('.form')
+    const tempo = document.querySelector('.tempo')
+    const input = document.querySelector('.input')
+    const botao = document.getElementById('start')
+    const pause = document.getElementById('pause')
+    const reset = document.getElementById('reset')
+
+    let parado = false
+    let resetado = false
+
+    input.addEventListener('input', e=>{
+        input.value = input.value.replace(/[^0-9_:]/g, '')
+        let ordem = [0, 0, ':', 0, 0, ':', 0 ,0]
+        switch (input.value.length) {
+            case 1:
+                ordem[7] = input.value[0]
+                tempo.innerHTML = ordem.join('')
+                break;
+            case 2:
+                ordem[6] = input.value[0]
+                ordem[7] = input.value[1]
+                tempo.innerHTML = ordem.join('')
+                break
+            case 3:
+                ordem[4] = input.value[0]
+                ordem[6] = input.value[1]
+                ordem[7] = input.value[2]
+                tempo.innerHTML = ordem.join('')
+                break
+            case 4:
+                ordem[3] = input.value[0]
+                ordem[4] = input.value[1]
+                ordem[6] = input.value[2]
+                ordem[7] = input.value[3]
+                tempo.innerHTML = ordem.join('')
+                break
+            case 5:
+                ordem[1] = input.value[0]
+                ordem[3] = input.value[1]
+                ordem[4] = input.value[2]
+                ordem[6] = input.value[3]
+                ordem[7] = input.value[4]
+                tempo.innerHTML = ordem.join('')
+                break
+            case 6:
+                ordem[0] = input.value[0]
+                ordem[1] = input.value[1]
+                ordem[3] = input.value[2]
+                ordem[4] = input.value[3]
+                ordem[6] = input.value[4]
+                ordem[7] = input.value[5]
+                tempo.innerHTML = ordem.join('')
+                break
+        }
+        if (input.value == '') {
+            tempo.innerHTML = '00:00:00'
+        }
+    })
+
+    form.addEventListener('submit',(e)=>{
+        e.preventDefault()
+    })
+    
+    function setTime(sec=0) {
+        let tempVideo = Math.floor(sec)
+        let minutos = Math.floor(tempVideo / 60)
+        let segundos = Math.floor(tempVideo % 60)
+        let horas = Math.floor(tempVideo / 3600)
+
+        while (minutos >=60) {minutos >= 60 ? minutos -= 60 : minutos}
+
+        
+        tempo.innerHTML = time
+    }
+
+    function toggleHidden() {
+        botao.classList.toggle('escondido')
+        pause.classList.toggle('escondido')
+    }
+
+    pause.addEventListener('click', e=>{
+        parado = true
+        setTime(returnSecs()[0])
+        toggleHidden()
+    })
+
+    function returnSecs() {
+        let time = tempo.innerHTML.split(':')
+        let sec = 0
+        let min = 0
+        let horas = 0
+        switch (time.length) {
+            case 1:
+                sec = time
+                secTotal = sec
+                break;
+            case 2:
+                min = Number(time[0]) * 60
+                sec = Number(time[1])
+                secTotal = sec + min
+                break;
+            case 3:
+                horas = Number(time[0]) * 60 * 60
+                min = Number(time[1]) * 60
+                sec = Number(time[2])
+                secTotal = sec + min + horas
+            break;
+        }
+        return [secTotal, horas, min, sec]
+    }
+
+    botao.addEventListener('click', (e)=>{
+        parado = false
+        resetado = false
+        toggleHidden()
+        let secTotal = returnSecs()[0]
+        let horas = returnSecs()[1] 
+        let min = returnSecs()[2]
+        let sec = returnSecs()[3] 
+        console.log(horas, ':', min, ':', sec)
+        console.log('Segundos Totais:', secTotal)
+        let secOrigin = secTotal
+        setTime(secTotal)
+        let loop = setInterval((x) => {
+            secTotal-=1
+            if (resetado) {
+                secTotal = secOrigin
+                resetado = false
+            }
+            if (secTotal >=0 && parado == false){
+                setTime(secTotal)
+            }else{
+                if (secTotal <= 0 && parado == false){
+                    clearInterval(loop)
+                    alert('Acabou')
+                }else{clearInterval(loop)}
+            }
+        }, 1000);
+    })
+    
+    reset.addEventListener('click', (e)=>{
+        resetado = true
+        let valorOriginal = input.value
+        let time = String(valorOriginal).split(':')
+        let sec = 0
+        let min = 0
+        let horas = 0
+        switch (time.length) {
+            case 1:
+                sec = time
+                secTotal = sec
+                break;
+            case 2:
+                min = Number(time[0]) * 60
+                sec = Number(time[1])
+                secTotal = sec + min
+                break;
+            case 3:
+                horas = Number(time[0]) * 3600
+                min = Number(time[1]) * 60
+                sec = Number(time[2])
+                secTotal = sec + min + horas
+            break;
+        }
+        setTime(secTotal)
+    })
+</script>
+<style>
+    *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+main {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.escondido{
+    display: none;
+}
+.container {
+    border-radius: 20% 40% 30% 2%;
+    border: 2px solid black;
+    min-width: 400px;
+    min-height: 350px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: -8px 8px 10px rgba(0, 0, 0, 0.39), 2px 0px 3px rgba(0, 0, 0, 0.39);
+    background-color: rgba(0, 0, 0, 0.541);
+    
+}
+h1 {
+    font-size: 3em;
+    text-transform: capitalize;
+    margin-bottom: 10px;
+    color:lightyellow;
+    font-weight: bolder;
+    text-shadow: -2px -2px 20px rgb(20, 47, 220), 2px 2px 10px rgb(20, 47, 220);
+
+}
+.tempo {
+    font-size: 1.4em;
+    color: rgb(20, 47, 220);
+
+}
+
+.input {
+    padding: 8px 3px;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    transform: translate(0px, 15px);
+    min-width: 200px;
+    text-align: center;    
+    color: lightyellow;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.botao {
+    margin-left: 10px;
+    font-size: 1.2em;
+    padding: 7px 12px;
+    border: 1px solid black;
+    background-color: rgb(20, 47, 220);
+    color: lightyellow;
+    cursor: pointer;
+    transform: translate(0px, 25px);
+    transition: all 0.5s;
+    min-width: 77px;
+}
+.botao:hover {
+    background-color: rgba(24, 23, 23, 1);
+    border: 1px solid rgb(20, 47, 220);
+    color: rgb(20, 47, 220);
+    box-shadow: 2px 2px 6px rgb(20, 47, 220), -2px -2px 6px rgb(20, 47, 220);
+    
+}
+.display-none {
+    display: none;
+}
+</style>
+</html>`
+fs.readdir(__dirname, (err, datas)=>{
+    if (err) throw err
+    datas.forEach((data)=>{
+        console.log(data)
+    })
+})
+
+// ler arquivo - assincrono / sincrono ( msm coisa soq sem callback e com sync )
+
+fs.readFile(`${__dirname}/texto.txt`, (err, data)=>{
+    if (err) throw err
+    console.log(data.toString())
+})
+
+// criar pasta
+
+/* fs.mkdir(`${__dirname}/Pasta/MKDIR`, {recursive: true} , (err)=>{
+    if(err) throw err
+    console.log('pasta criada')
+}) */
+
+// criar arquivo
+
+//fs.writeFileSync(`${__dirname}/Pasta/MKDIR/arquivo.html`, data)
+//require('child_process').exec(`start file:///C:/Users/ovats/Desktop/CursoNode/Pasta/MKDIR/arquivo.html`)
